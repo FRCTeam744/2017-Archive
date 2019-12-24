@@ -1,0 +1,210 @@
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package org.usfirst.frc.team744.yr2015.robot.commands;
+
+import org.usfirst.frc.team744.yr2015.robot.TmDbgTk;
+import org.usfirst.frc.team744.yr2015.robot.subsystems.TmSsRobotDrive;
+
+import edu.wpi.first.wpilibj.command.Command;
+
+/**
+ *
+ * @author Alex
+ * 
+ * Command to make the robot drive straight using a p-controller on the x and y error
+ * Will only be tuned to high gear.
+ * Currently not tuned.
+ * 
+ * 
+ * 
+ * 
+ * TUNING - see detailed comments further down (crt-F: "Constants to tune!"):
+ * pKy: increase if the robot is slowing down too early, and lower if it is overshooting
+ * pKx: increase if angle is not returning to 0 / decrease if angle is overshooting (oscillating)
+ *      probably should >1, my guess ~10 thimes lower pKth to accommodate oscillation 
+ * pKth: increase if angle is not returning to 0 / decrease if angle is overshooting (oscillating)
+ */
+public class TmAutoCmdDriveStraightEndAndGyro extends Command {
+    
+	TmSsRobotDrive cb_robotDrive;
+    private double distance;
+    private double yError;
+    private double xError;
+    
+    //"Constants to tune!" Tuning advice:
+    //
+    //Sanity Check:
+    //Set pKy = pKth = pKx = 0
+    //Ensure robot doesn't move and ensure that there is a working timeout
+    //
+    //Tune pKy:
+    //Start with pKth = 0. This will make pKx also irrelevant, but set pKx=0 anyway.
+    //This will make the curve input equal 0 of the .drive(double speed, double curve) method
+    //	Tune pKy, which controls forward and backward movement.
+    //	Send a command which only drives a small distance, say ~ 1 foot.
+    //	If moving backwards or forwards indefinitely, switch sign of pKy
+    //	If not moving at all, increase size of kPy by a facator of 10. Repeat until it moves.
+    
+    //Control for pKth and pKx:
+    //Test with a command that drives a longer distance, say ~10-15 feet
+    //	Observe if there is any deviation in angle or sideways deviations from a straight line (x deviations).
+    //	Repeat, but this time attempt to mess up the straightness somehow
+    //	(e.g. slip surface under one side of drive at beginning, 
+    //		  or something like tape or carpet in the gears)
+    // 	Observe any deviations now, record approximate angle and sideways deviations (x) 
+    
+    //Tune kPth:
+    //Set pKth ~= .1*pKy to start. Leave kPy where it was
+    //Set pKx=0. This will always attempt to correct angle to 0, not to go towards the drive line.
+    //	Test with same longer distance command that drives ~10-15 feet
+    //	You will know that the sign of pKth is wrong if the robot veers and/or spins immediately
+    //		This is because it is positive feedback, which
+    //			increases the positive spin as the angle begins to drift from 0 in the positive direction 
+    //			and increases the negative spin as the angle begins to drift from 0 in the negative direction.
+    //		We want negative feedback, which
+    //			increase the negative spin as the angle begins to drift from 0 in the positive direction (thus pushing it back to 0)
+    //			and increases the positive spin as the angle begins to drift in the negative direction (also pushing it back to 0)
+    //	With correct sign, observe if there are any deviations from the straight drive line
+    //		It should be pretty straight.
+    //		Repeat tests that mess up angle (e.g. slick surface or tape in gears). 
+    //		Record angle and sideways deviations.
+    //		Repeat these tests while increasing the magnitude of kPth 
+    //			until the angle quickly returns to 0, with no overshoot or oscillations.
+    //			If the kPth began with overshoots and oscillations, reduce it.
+    //		Record any sideways (x) error, but do not attempt to eliminate it with this gain.
+    
+    //Turn on kPx:
+    //Set pKx ~= 10*pKth
+    //	You will know that the sign of pKx is wrong if the robot veers and/or spins immediately
+    //	Repeat the previous tests, and record the deviation sideways from the straight line
+    //		Increase pKx if the sideways error is still too high
+    //		Decrease pKx if the robot begins overshooting the straight driveline
+    
+    private static final double pKy  = 1.6; //Tune this!
+    private static final double pKth = 0.1; //Tune this!
+    private static final double pKx  = 1.0; //Tune this!
+    
+    public TmAutoCmdDriveStraightEndAndGyro(double distance) {
+    	cb_robotDrive = TmSsRobotDrive.getInstance();
+    	
+        // Use requires() here to declare subsystem dependencies
+        // eg. requires(chassis);
+        this.distance = distance;
+        yError = distance;
+        requires(cb_robotDrive);
+        
+    }
+
+    // Called just before this Command runs the first time
+    protected void initialize() {
+        TmDbgTk.printIt(-1, "Drive Straight init");
+        //cb_robotDrive.startEncoders();
+        cb_robotDrive.resetEncoders();
+        
+        cb_robotDrive.resetGyro();
+        //yError = distance;
+        xError = 0;
+    }
+
+    // Called repeatedly when this Command is scheduled to run
+    protected void execute() {
+    	//Helpful Print Statments, can be commented/deleted if not needed later
+        TmDbgTk.printIt(-1, "Drive Straight execute");
+        TmDbgTk.printIt(-1, "yError: " + yError);
+        
+        //Get readings from encoders and gyro
+        double rdg = getEncoderRdg();
+        double theta = Math.toRadians(cb_robotDrive.getAngle());
+        
+        //Calculate how far the robot has moved in x and y (x is sideways and y is forward/backwards)
+        double dx = rdg * Math.sin(theta);
+        double dy = rdg * Math.cos(theta);
+        
+        //Accumulate the changes from each time step, to calculate overall error in x and y
+        yError -= dy;
+        xError -= dx;
+
+        //If xError is large, desired angle should point more steeply back towards the line we want to travel on
+        double desiredTheta = xError * pKx;
+
+        //thetaError is difference between our current error and desired theta
+        double thetaError = desiredTheta - theta;
+        
+        //Helpful print statments, can be commented/deleted when done tuning
+        TmDbgTk.printIt(-1, "yError: " + yError);
+        TmDbgTk.printIt(-1, "xError: " + xError);
+        TmDbgTk.printIt(-1, "Theta: " + theta);
+        
+        //Math showing what curve input equals:
+        //curve input = (desiredTheta - theta) * pKth
+        //= ((xError * pKx)-theta) * pKth 
+        //= 
+        
+        //using the built in function drive(double speed, double curve)
+        //p Controller on speed based on y (forward/backward) error
+        //p Controller on curve/angle based on thetaError, based on xError and gyro reading
+        cb_robotDrive.drive(clampInput(yError * pKy), clampInput(thetaError * pKth));
+        
+    }
+    
+    public double clampInput(double input) {
+        if(input > 1) return 1;
+        else if(input < -1) return -1;
+        else return input;
+    }
+
+    // Make this return true when this Command no longer needs to run execute()
+    protected boolean isFinished() {
+    	//TODO: Add a timeout!
+        return (isInRange(yError) && isInRange(xError));
+    }
+
+    //Ends when x and y error are both less than .5 inches
+    //make sure to have a time out though!!! 
+    //If y gets too small while x is correcting, 
+    //the robot will slow down and not be able to turn back toward y
+    public boolean isInRange(double error) {
+        return (Math.abs(error) < (.5 / 12));
+    }
+    // Called once after isFinished returns true
+    protected void end() {
+        TmDbgTk.printIt(-1, "Drive Straight end");
+        cb_robotDrive.drive(0, 0);
+        cb_robotDrive.setLeftRightMotorOutputs(0, 0);
+    }
+
+    // Called when another command which requires one or more of the same
+    // subsystems is scheduled to run
+    protected void interrupted() {
+        cb_robotDrive.drive(0, 0);
+        cb_robotDrive.setLeftRightMotorOutputs(0, 0);
+    }
+    
+    
+    //Initializes variables used to track previous encoder distance
+    private double prevLfEncoderRdg = 0;
+    private double prevRtEncoderRdg = 0;
+    //Calculates average movement since last time step
+    public double getEncoderRdg() {
+    	//Get left and right total distance so far
+        double curLfEncoderRdg = cb_robotDrive.getLeftDistance();
+        double curRtEncoderRdg = cb_robotDrive.getRightDistance();
+        
+        //Substract the total distance rom last time to get change since last time
+        //Add and divide by 2 to get average
+        double rdg = .5 * ((curLfEncoderRdg - prevLfEncoderRdg) + (curRtEncoderRdg - prevRtEncoderRdg));
+        
+        //Log previous readings
+        prevLfEncoderRdg = curLfEncoderRdg;
+        prevRtEncoderRdg = curRtEncoderRdg;
+        
+        //Potentially helpful prints
+        System.out.println("Average Encoder Rdg: " + rdg);
+        
+        return rdg;
+    }
+    
+    
+}

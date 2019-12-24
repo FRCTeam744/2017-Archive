@@ -1,0 +1,42 @@
+package org.usfirst.frc.tm744y17.robot.devices;
+
+import org.usfirst.frc.tm744y16.robot.devices.TmDigitalInput.DioReadingsE;
+import org.usfirst.frc.tm744y17.robot.config.TmHdwrRoMap.RoNamedIoE;
+
+public class TmFakeable_LimitSwitch extends TmFakeable_RoDigitalInput {
+
+	public enum LimitSwitchCfgE { NORMALLY_OPEN, NORMALLY_CLOSED }
+	public enum DioReadingsE {
+		NORMALLY_OPEN_CLOSED(false), NORMALLY_OPEN_OPEN(true),
+		NORMALLY_CLOSED_CLOSED(true), NORMALLY_CLOSED_OPEN(false);
+		private boolean eSetting;
+		private DioReadingsE(boolean setting) {
+			eSetting = setting;
+		}
+	}
+	
+	private DioReadingsE m_defaultDioReading;
+	
+	private static LimitSwitchCfgE m_limitSwitchCfg = LimitSwitchCfgE.NORMALLY_OPEN;
+	private static RoNamedIoE m_namedIoDef;
+	
+	public TmFakeable_LimitSwitch(RoNamedIoE namedIoDef) {
+		super(namedIoDef);
+		commonConstructorWork(namedIoDef, LimitSwitchCfgE.NORMALLY_OPEN, DioReadingsE.NORMALLY_OPEN_OPEN);
+	}
+	public TmFakeable_LimitSwitch(RoNamedIoE namedIoDef, LimitSwitchCfgE cfg) {
+		super(namedIoDef);
+		//Note: x=a?b:c; means if(a){x=b;}else{x=c;} -- conditional operator [744conditionalOp]
+		DioReadingsE dfltRdg = (cfg.equals(LimitSwitchCfgE.NORMALLY_OPEN)) ? 
+											DioReadingsE.NORMALLY_OPEN_OPEN : 
+											DioReadingsE.NORMALLY_CLOSED_CLOSED;
+		commonConstructorWork(namedIoDef, cfg, dfltRdg);
+	}
+
+	private void commonConstructorWork(RoNamedIoE namedIoDef, LimitSwitchCfgE cfg, DioReadingsE dfltReading) {
+		m_namedIoDef = namedIoDef;
+		m_limitSwitchCfg = cfg;	
+		m_defaultDioReading = dfltReading;
+	}
+
+}

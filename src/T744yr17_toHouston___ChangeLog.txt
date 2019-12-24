@@ -1,0 +1,164 @@
+Change Log for project T744yr17_toHouston
+	camera res
+=========== as of   2017-04-22_10-31-EDT        ===> as  T744yr17_toHouston_2017-04-22_10-31-EDT_chgGoodBadDesignationsForAuto_onRobot.zip
+	change "GOOD" and "BAD" designations for auto.
+=========== as of   2017-04-22_08-31-EDT        ===> as  T744yr17_toHouston_2017-04-22_08-31-EDT_retuneGyroSpin_removeSDstuff_onRobot.zip
+
+	TmACmdDriveSpinGyro			cut pK in half from 0.6 to 0.3
+	TmSsDriveTrain				comment out unneeded SD data in postToSd()
+	
+=========== as of   2017-04-21_16-40-EDT        ===> as  T744yr17_toHouston_2017-04-21_16-40-EDT_fixAuton_restoreBattSs_onRobot.zip
+	[restore TmSsBattery to original]
+	TmACGrpRightSideGearRedAndShoot		prev angle adj was wrong direction, set to 11.5 (orig prob value was 20, we chgd to 30--bad)
+
+=========== as of   2017-04-21_15-56-EDT        ===> as  T744yr17_toHouston_2017-04-21_15-56-EDT_match88.zip
+	[lots of stuff, TmSsBattery chg, remove climber current limits, switch to Talon PID control for shooter]
+=========== as of   2017-04-20_16-09-EDT        ===> as  T744yr17_toHouston_2017-04-20_16-09-EDT_Dell-snap_tweakAuton_onRobot.zip
+	[lots of tweaks and adjustments]
+=========== as of   2017-04-20_09-04-EDT	   	===> T744yr17_toHouston backed up as T744yr17_toHouston_2017-04-20_09-04-EDT_Dell-snap_climerCurrentLimit_plcSideGearThenToMidfied_onRobot.zip
+	TmFakeable_CANTalon 			add setUserCurrentLimit()
+	[change side gear alg to place gear then drive to midfield]
+
+=========== as of   2017-04-20_03-30-EDT	   	===> T744yr17_toHouston backed up as T744yr17_toHouston_2017-04-20_03-30-EDT_Dell_prepToTuneShooter.zip
+	TmSsShooter						main state machine: case MANUAL_TO_START no longer stops drum
+									[need to tune TrigCnst constants??]
+									[tune drum via preferences]
+	TmCCmdShooterStartManualMode	add option to execute until manual mode starts (for autonomous)
+	TmACGrpStartShooterDrum			created - starts shooter manual mode, then starts drum
+	TmACGrpShootAndPlaceGearBlue	add steps to start shooter drum early
+	TmACGrpShootAndPlaceGearRed 	add steps to start shooter drum early
+	TmACGrpShootBlue				add steps to start shooter drum early
+	TmACGrpShootRed					add steps to start shooter drum early
+	
+=========== as of   2017-04-20_01-30-EDT	   	===> T744yr17_toHouston backed up as T744yr17_toHouston_2017-04-20_01-30-EDT_Dell_improveClimberCurrentLimitCode.zip
+	TmSsClimber					modify setClimberMotorSpeed() and refreshClimberMotorSpeed() to
+									never set motor speed to a value greater than the reduced
+									motor speed calculated when current was found to be greater
+									than the allowed current
+								set max motor speed allowed back to 1.0 in the various
+									init routines.
+
+=========== as of   2017-04-20_00-52-EDT	   	===> T744yr17_toHouston backed up as T744yr17_toHouston_2017-04-20_00-52-EDT_Dell_fieldMeas_climberFakeTalonsFix.zip
+	[since the toHouston_tempClimber project turned out to be what we wanted, renamed the projects]
+	[renamed toHouston as toHouston_unneededBackTo2ClimberTalons]
+	[renamed toHouston_tempClimber as toHouston]
+
+=========== as of   2017-04-20_00-21-EDT	   	===> T744yr17_toHouston_tempClimber backed up as T744yr17_toHouston_tempClimber_2017-04-20_00-21-EDT_Dell_fieldMeas_climberFakeTalonsFix.zip
+	TmACGrpShootAndPlaceGearBlue	document field placement measurements, add comments for key steps
+	TmACGrpShootAndPlaceGearRed		document field placement measurements, add comments for key steps
+	TmACGrpShootBlue				document field placement measurements, add comments for key steps
+	TmACGrpShootRed					document field placement measurements, add comments for key steps
+
+=========== as of   2017-04-19_20-15		   	===> T744yr17_toHouston_tempClimber backed up as T744yr17_toHouston_tempClimber_2017-04-19_20-15_Dell-snap_onRobot.zip
+	Tm17Opts						DFLT_OPT_CLIMBER_TALON_40A_INSTALLED changed to false
+	TmHdwrRoMap						reassign CAN ids so 40A motor stays on original talon and two new talons use new CAN ids
+	TmHdwrRoPhys					change breaker sizes for climber motor CAN ids so 40A motor stays on original talon
+										and new talons are connected to 30A breakers
+									add MAX_AMPS_20A to BreakerSizeE for use when want max 20A no matter what the
+										breaker size is.
+	TmFakeable_CANTalon				for a fake talon, make output current outrageously low instead of outrageously
+										high so climber's current limit code won't go haywire
+	
+=========== as of   2017-04-15_20-10 	    	===> T744yr17_toHouston backed up as T744yr17_toHouston_2017-04-15_20-10_Dell-snap_add-AlgAvailableE-but-not-used.zip
+	TmSsAutonomous 				add AutonAlgAvailableE, but not yet used for anything
+
+=========== as of   2017-04-15_18-45    		===> T744yr17_toHouston backed up as T744yr17_toHouston_2017-04-15_18-45_Dell-snap_importTunedAlgsFromSmokies.zip
+	[import tuned autonomous algs from toSmokies project]
+
+=========== as of   2017-04-15_18-10    		===> T744yr17_toHouston backed up as T744yr17_toHouston_2017-04-15_16-55_Dell-snap_3climberMotors_seemsOK_newSDlayoutOnDB.zip
+	[change preferences entries and SD keys, save motor speed when max current hit only if less than previous value]
+
+=========== as of   2017-04-15_16-55    		===> T744yr17_toHouston backed up as T744yr17_toHouston_2017-04-15_16-55_Dell-snap_3climberMotors_untested.zip
+	[add 3rd climber motor and make max amps allowed a per-motor parm]
+	TmHdwrRoPhys
+	TmHdwrRoMap
+	TmSsClimber
+=========== as of   2017-04-12_19-45    		===> T744yr17_toHouston backed up as T744yr17_toHouston_2017-04-12_19-45_Judi-snap_twoClimberMotorsLimitAmps_untested.zip
+	
+	TmRoFilesAndPrefKeys		add keys for climber talons and shooter installation options
+								make PrefKeys class private -- it shouldn't be used now that we have PrefKeysE enum
+	TmMiscSdKeys				add keys for climber talons and shooter installation options and for amps for 2nd climber motor
+	Tm17Opts					add options for climber talons installation
+								switch from PrefKeys to PrefKeysE as parm for preference key
+								add Cnst class
+	TmCfgMotors					add constants for use when no SdKeys are provided
+								change (some) unused methods from public to private
+								add second climber motor, do some related refactoring
+	TmHdwrRoPhys				add RoNamedModulesE.CAN_TALON_34 for use for second climber motor
+	TmHdwrRoMap					add named IO for second climber motor
+								add support for forcing a fakeable device to be a fake (for use with climber talons)
+	TmFakeable_CANTalon			replace showMaxMinOutputCurrent() with getMaxMinOutputCurrentSummary()
+	TmCANTalonFeaturesI			replace showMaxMinOutputCurrent() with getMaxMinOutputCurrentSummary()
+								update the max/min output current summary string when ever a new max or min is detected.
+									helps performance by not having to rebuild the string in 'periodic' routines.
+	TmMotorConfigEnumI			replace showMaxMinOutputCurrent() with getMaxMinOutputCurrentSummary()
+	TmSsClimber					use TmFakeable_CANTalon's current monitoring capability instead of trying to manage it
+									in the climber subsystem.
+								add support for a second motor. Both motors turn the same direction and at the same speed.
+								add code to refreshMotorSpeed() to reduce speed if current exceeds hardcoded limit of 30A.
+									track the actual motor speed in use when current limit is exceeded
+								add comments explaining adjustments made to joystick readings before they're used to set
+									motor speeds
+									
+	TmTCmdShowAllAutonAlgAndPrefs	switch from PrefKeys to PrefKeysE as parm for Tt.getPreference()
+	
+	TmToolsI					switch from PrefKeys to PrefKeysE as parm for Tt.getPreference()
+	TmSsDriveTrain				switch from PrefKeys to PrefKeysE as parm for Tt.getPreference()
+	TmSsShooter					switch from PrefKeys to PrefKeysE as parm for Tt.getPreference()
+	
+----------------- old info from toSmokies ------------------------------
+=========== as of   2017-04-11-22-50    		===> T744yr17_toSmokies backed up as T744yr17_toSmokies_2017-04-11_22-58_Dell-snap_tunedNewAutoAlgs.zip
+    TmSsAutonomous                  altered Shoot and Place Gear Red and Shoot Red to account for
+    								inaccuracy of program it was based on (Place gear and Shoot Red)
+    								decreased the first turn angle to 35 from 40 and second turn angle to 20 from 18
+    								increased first distance to 3.667 from 3.785, second distance to 5.458 from 6.208
+    								and third distance to 1.5 from 1.0
+=========== as of   2017-04-06_21-04
+	TmSsAutonomous   				wrote four new autonomous algs: Shoot Red, Shoot Blue,
+									Shoot and Place Gear Red, Shoot and Place Gear Blue.
+									They are tuned to the point where they need to be tested
+									an actual field.  
+=========== as of 	2017-03-25_11-48    		===> T744yr17_toSmokies backed up as T744yr17_toSmokies_2017-03-25_11-48_Dell-snap_tuneShooter.zip
+	TmSsShooter						tighten tolerance on RPS (from 90 RPM to 75 RPM)
+									make target RPS match preferences value 
+									reduce trigger pulse on time
+									
+=========== as of 	2017-03-25_08-31    		===> T744yr17_toSmokies backed up as T744yr17_toSmokies_2017-03-25_08-31_Dell-snap_restoreShooterTrigPulsing_addCnslMsg.zip
+	TmSsShooter						restore trigger pulse times
+									add console message timestamping "reached target RPS"
+									
+=========== as of 	2017-03-25_01-40    		===> T744yr17_toSmokies backed up as T744yr17_toSmokies_2017-03-25_01-40_Dell-snap_minTimeBetwBalls_showPrefsWithAlgs.zip
+	TmTCmdShowAllAutonAlgAndPrefs		add and call method that will display all Preferences values found
+										[tested/debugged via simulator project]
+	Tm17Opts							make Defaults class public for use in TmRoFilesAndPrefKeys.PrefKeysE
+	TmRoFilesAndPrefKeys				add PrefTypeE and PrefKeysE enums for use by TmTCmdShowAllAutonAlgAndPrefs
+	TmMiscSdKeys						add keys for climber current/min/max amps SD values
+	TmExceptions						add exception for use by PrefKeysE
+	TmToolsI							add isPreferencePresent() method
+	TmSsAutonomous						add/update autonomous algorithms
+	TmSsClimber							track motor amps and report to SD
+	TmSsDriveTrain						make stuff public for use in PrefKeysE
+	TmSsShooter							add console messages reporting state of isEncoderUsable()
+										check preferences for encoder usage in ....Init() routines
+										make things public for use by PrefKeysE
+										implement a minimum time between balls (0.100 sec) for use when using encoder
+	----------
+	[backup T744yr17_toSmokies_2017-03-24_14-30_Dell-snap_gearAndShootTweak.zip 
+		TmSsShooter 	modified trigger pulse on time from .100 to .800
+						modified trigger pulse off time from .400 to .200
+		(among other changes)]
+	
+	----------
+	[tweaks to autonomous, several backups made but not logged]
+	
+=========== as of 	2017-03-23_12-45    		===> T744yr17_toSmokies backed up as T744yr17_toSmokies_2017-03-23_12-45_Dell_adjShooterTargRps_PMatch6.zip
+	TmSsShooter				[shooter encoder enabled via preferences, low speed RPS measured to be 53.0, corresponding preference set to 53.0]
+							[high-speed preference value not changed]
+							low speed target RPS changed to 53.0 from 69.3333333 [not on robot]
+							high speed target RPS changed to 66.25 based on calculation: ((53.0/69.33333)*86.66666667) [not on robot]
+
+=========== as of 	2017-03-23_09-59    		===> T744yr17_toSmokies backed up as T744yr17_toSmokies_2017-03-23_09-59_Dell_addLedStripRelay.zip
+	TmHdwrRoMap				add relay for LED strip
+	TmSsGearFlipper			add code to change color of LED strip based on flipper position
+	
+		

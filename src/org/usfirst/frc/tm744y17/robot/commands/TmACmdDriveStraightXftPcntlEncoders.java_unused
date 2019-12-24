@@ -1,0 +1,103 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package org.usfirst.frc.tm744y17.robot.commands;
+
+import org.usfirst.frc.tm744y17.robot.subsystems.TmSsDriveTrain;
+import org.usfirst.frc.tm744y17.robot.subsystems.TmSsDriveTrain.DrvEncoderMgmt;
+
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.command.Command;
+
+/**
+ * P-controlled driving of the robot during autonomous, using encoders only.
+ * Robot should slow down as it gets close to the end point
+ * 
+ * TUNING K:
+ * If robot is moving in wrong direction, multiply by -1
+ * If robot is overshooting and/or oscillating about point, lower K
+ * If robot is not reaching point and not ending the Command, increase K
+ * 
+ * @author Alex
+ */
+public class TmACmdDriveStraightXftPcntlEncoders extends Command {
+    
+    DriverStation m_ds = DriverStation.getInstance();
+    TmSsDriveTrain ssDrive;
+    DrvEncoderMgmt m_dem;
+    private double distance;
+    private static double maxMotorSpeed = 0.4;
+    private static double minMotorSpeed = 0.1;
+    
+    private static final double K = -.45; //TUNE! 
+    
+    public TmACmdDriveStraightXftPcntlEncoders(double distance) {
+    	this(distance, maxMotorSpeed, Math.abs(distance)*.5);
+//    	ssDrive = TmSsDriveTrain.getInstance();
+//    	m_dem = ssDrive.getDriveEncoderMgmtInstance();
+//        setTimeout(Math.abs(distance)*.5);
+//        requires(ssDrive);
+//        this.distance = distance;
+    }
+    
+    public TmACmdDriveStraightXftPcntlEncoders(double distance, double maxSpeed) {
+    	this(distance, maxSpeed, 5);
+//    	ssDrive = TmSsDriveTrain.getInstance();
+//    	m_dem = ssDrive.getDriveEncoderMgmtInstance();
+////        setTimeout(Math.abs(distance)*.6);
+//    	setTimeout(5);
+//        requires(ssDrive);
+//        this.distance = distance;
+//        maxMotorSpeed = maxSpeed;
+    }
+    
+    public TmACmdDriveStraightXftPcntlEncoders(double distance, double maxSpeed, double time) {
+    	ssDrive = TmSsDriveTrain.getInstance();
+    	m_dem = ssDrive.getDriveEncoderMgmtInstance();
+        
+    	setTimeout(time);
+        requires(ssDrive);
+        this.distance = distance;
+        maxMotorSpeed = maxSpeed;
+    }
+
+    // Called just before this Command runs the first time
+    protected void initialize() {
+        ssDrive.resetEncoders();
+    }
+
+    // Called repeatedly when this Command is scheduled to run
+    double error;
+    protected void execute() {
+    	m_dem.update();        
+        error = distance - m_dem.getAverageDistance();
+        ssDrive.getChassisInstance().setRobotLeftRightSpeeds(clamp(error*K), clamp(error*K));
+    }
+
+    // Make this return true when this Command no longer needs to run execute()
+    protected boolean isFinished() {
+        //return when an inch away or autonomous ends
+       return Math.abs(error) < (1.0 / 12) || isTimedOut(); 
+    }
+
+    // Called once after isFinished returns true
+    protected void end() {
+        ssDrive.stopMotors();
+    }
+
+    // Called when another command which requires one or more of the same
+    // subsystems is scheduled to run
+    protected void interrupted() {
+        ssDrive.stopMotors();
+    }
+    
+    private double clamp(double value) {
+       if(value > maxMotorSpeed) return maxMotorSpeed;
+       else if(minMotorSpeed > value && value > 0.0) return minMotorSpeed;
+       else if(0.0 > value && value > -minMotorSpeed) return -minMotorSpeed;
+       else if(value < -maxMotorSpeed) return -maxMotorSpeed;
+       else return value;
+    }
+}

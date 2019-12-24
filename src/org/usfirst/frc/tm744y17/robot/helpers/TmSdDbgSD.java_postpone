@@ -1,0 +1,20 @@
+package org.usfirst.frc.tm744y17.robot.helpers;
+
+public class TmSdDbgSD {
+
+	public static void doDisabledInit() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public static void doAutonomousInit() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public static void doTeleopInit() {
+		// TODO Auto-generated method stub
+		
+	}
+
+}

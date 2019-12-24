@@ -1,0 +1,63 @@
+package org.usfirst.frc.tm744y17.robot.commands;
+
+import org.usfirst.frc.tm744y17.robot.subsystems.TmSsDrvGearShift;
+
+import edu.wpi.first.wpilibj.command.CommandGroup;
+
+/**
+ *
+ */
+public class TmACGrpLeftSideGearBucketandLineUpBlue extends CommandGroup {
+	
+	private static final double FORWARD_SPEED = 1.0;
+	private static final double REVERSE_SPEED = -1.0;
+	private static final double SPIN_SPEED = 1.0;
+	
+    public TmACGrpLeftSideGearBucketandLineUpBlue() {
+    	//changes made: might have to lower motor speed, reversed directions on the motors
+    	addSequential(new TmCCmdDriveShiftGear(TmSsDrvGearShift.DrvGearsE.LOW));
+    	addSequential(new TmCCmdDriveForwardDistance(FORWARD_SPEED, FORWARD_SPEED, 7.02));
+        addSequential(new TmCCmdDelay(3));
+    	addSequential(new TmCCmdDriveForwardDistance(-SPIN_SPEED,SPIN_SPEED, -1.0));  //adjust turn value
+        addSequential(new TmCCmdDelay(3));
+    	addSequential(new TmCCmdDriveForwardDistance(FORWARD_SPEED,FORWARD_SPEED, 0.84));
+        addSequential(new TmCCmdDelay(3));
+        addSequential(new TmCCmdGearFlippersExtend());
+        addSequential(new TmCCmdDelay(3));
+        addSequential(new TmCCmdDriveForwardDistance(REVERSE_SPEED, REVERSE_SPEED, -1.0));
+        addSequential(new TmCCmdDelay(3));
+        addSequential(new TmCCmdGearFlippersRetract());
+        addSequential(new TmCCmdDelay(3));
+        addSequential(new TmCCmdDriveForwardDistance(SPIN_SPEED,-SPIN_SPEED,-1.0));  //adjust to same value as turn and a 180 turn
+        addSequential(new TmCCmdDelay(3));
+        addSequential(new TmCCmdDriveForwardDistance(FORWARD_SPEED,FORWARD_SPEED,9.45));  //adjust value to bump the farther bucket
+        addSequential(new TmCCmdDelay(3));
+        addSequential(new TmCCmdDriveForwardDistance(-SPIN_SPEED,SPIN_SPEED,1.0));  //adjust to be 90 degree turn
+        addSequential(new TmCCmdDelay(3));
+        addSequential(new TmCCmdDriveForwardDistance(REVERSE_SPEED,REVERSE_SPEED,-5.58));   //adjust to hit activator without braking it
+        addSequential(new TmCCmdDelay(3));
+        addSequential(new TmCCmdDriveForwardDistance(FORWARD_SPEED,FORWARD_SPEED,21.48));  //adjust to cross field
+        addSequential(new TmCCmdDelay(3));
+        addSequential(new TmCCmdDriveForwardDistance(SPIN_SPEED,-SPIN_SPEED,1.0));  //adjust for a 90 degree turn
+        addSequential(new TmCCmdDelay(3));
+        addSequential(new TmCCmdDriveForwardDistance(REVERSE_SPEED,REVERSE_SPEED,-12.6));  //adjust to be close to shooting position
+        addSequential(new TmCCmdDelay(3));
+        // maybe addSequential(new TmCCmdDriveForwardDistance(1.0,-1.0,1.0));  //adjust to line up with goal
+        // Add Commands here:
+        // e.g. addSequential(new Command1());
+        //      addSequential(new Command2());
+        // these will run in order.
+
+        // To run multiple commands at the same time,
+        // use addParallel()
+        // e.g. addParallel(new Command1());
+        //      addSequential(new Command2());
+        // Command1 and Command2 will run in parallel.
+
+        // A command group will require all of the subsystems that each member
+        // would require.
+        // e.g. if Command1 requires chassis, and Command2 requires arm,
+        // a CommandGroup containing them would require both the chassis and the
+        // arm.
+    }
+}

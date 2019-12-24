@@ -1,0 +1,235 @@
+package org.usfirst.frc.tm744y17.robot.subsystems;
+
+import org.usfirst.frc.tm744y17.robot.driverStation.TmPostToSd;
+import org.usfirst.frc.tm744y17.robot.driverStation.TmMiscSdKeys.SdKeysE;
+import org.usfirst.frc.tm744y17.robot.helpers.TmStdSubsystemI;
+import org.usfirst.frc.tm744y17.robot.helpers.TmToolsI;
+import org.usfirst.frc.tm744y17.robot.helpers.TmToolsI.P;
+import org.usfirst.frc.tm744y17.robot.subsystems.TmSsCameras.CameraSelectorE;
+
+/**
+ * from team 955, posted on Chief Delphi
+ * found using search string: chief delphi 2017 switch USB cameras
+ * copied from: https://raw.githubusercontent.com/Merfoo/MultiCamera/master/src/org/usfirst/frc/team955/robot/CameraFeeds.java
+ * 
+ */
+import com.ni.vision.NIVision;
+import com.ni.vision.NIVision.Image;
+//import com.ni.vision.NIVision.cam;
+
+//import edu.wpi.first.wpilibj.CameraServer;
+import edu.wpi.first.wpilibj.vision.CameraServer;
+
+
+public class TmSsCameras  implements TmStdSubsystemI, TmToolsI{
+	
+	/*---------------------------------------------------------
+	 * getInstance stuff                                      
+	 *---------------------------------------------------------*/
+	/** 
+	 * handle making the singleton instance of this class and giving
+	 * others access to it
+	 */
+	private static TmSsCameras m_instance;
+
+	public static synchronized TmSsCameras getInstance() {
+		if (m_instance == null) {
+			m_instance = new TmSsCameras();
+		}
+		return m_instance;
+	}
+
+//	private TmSsCameras() {
+//	}
+	/*----------------end of getInstance stuff----------------*/
+
+	public enum CameraSelectorE { 
+		FRONT, REAR;
+		public boolean isFrontCameraSelected() { return this.equals(CameraSelectorE.FRONT); }
+		public boolean isRearCameraSelected() { return this.equals(CameraSelectorE.REAR); }
+	}
+	private static CameraSelectorE m_cameraSelection;
+	
+	public static boolean isFrontCameraSelected() { return m_cameraSelection.isFrontCameraSelected(); }
+	public static boolean isRearCameraSelected() { return m_cameraSelection.isRearCameraSelected(); }
+	
+	public static void setCameraSelection(CameraSelectorE camSel) {
+		m_cameraSelection = camSel;
+		P.println("Camera selected: " + camSel.name());
+		TmPostToSd.dbgPutBoolean(SdKeysE.KEY_CAMERA_FRONT_SELECTED, camSel.isFrontCameraSelected());
+		TmPostToSd.dbgPutBoolean(SdKeysE.KEY_CAMERA_REAR_SELECTED, camSel.isRearCameraSelected());
+	}
+	
+	private enum CameraDefE {
+		FRONT_CAM("cam0", 0),
+		REAR_CAM("cam1", 1),
+		;
+		private final String eCamName;
+		private final int eCamDevNbr;
+		private CameraDefE(String camName, int camDevNbr) {
+			eCamName = camName;
+			eCamDevNbr = camDevNbr;
+		}
+		public String getCameraName() { return eCamName; }
+		public int getCameraDevNbr() { return eCamDevNbr; }
+	}
+
+	
+//	package org.usfirst.frc.team955.robot;
+//
+//	import com.ni.vision.NIVision;
+//	import com.ni.vision.NIVision.Image;
+//	import edu.wpi.first.wpilibj.CameraServer;
+
+//	public class CameraFeeds
+//	{
+		private final int camRearGearPlacer;
+		private final int camFrontShooter;
+		private int curCam;
+		private Image frame;
+		private CameraServer server;
+//		private Controller contr;
+		
+//		//what/where are these??
+//		private class Controller {
+//			protected boolean getButton(int btnNbr) { return false; }
+//		}
+		private static class Config {
+			protected static class CameraFeeds {
+				static String camNameFrontShooter = "cam0"; //the front camera on 744 'bot
+				static String camNameRearGearPlacer = "cam1"; //the rear camera on 744 'bot
+				static int imgQuality = 50;
+//				static int btCamCenter = 0;
+//				static int btCamRight = 1;
+			}
+		}
+
+		
+//		public CameraFeeds(Controller newContr)
+		public TmSsCameras()//Controller newContr)
+		{
+	        // Get camera ids by supplying camera name ex 'cam0', found on roborio web interface
+	        camRearGearPlacer = NIVision.IMAQdxOpenCamera(Config.CameraFeeds.camNameRearGearPlacer, NIVision.IMAQdxCameraControlMode.CameraControlModeController);
+	        camFrontShooter = NIVision.IMAQdxOpenCamera(Config.CameraFeeds.camNameFrontShooter, NIVision.IMAQdxCameraControlMode.CameraControlModeController);
+	        setCameraSelection(CameraSelectorE.REAR);
+	        curCam = m_cameraSelection.isRearCameraSelected() ? camRearGearPlacer : camFrontShooter;
+	        // Img that will contain camera img
+	        frame = NIVision.imaqCreateImage(NIVision.ImageType.IMAGE_RGB, 0);
+	        // Server that we'll give the img to
+	        server = CameraServer.getInstance();
+	        server.setQuality(Config.CameraFeeds.imgQuality);
+//	        contr = newContr;
+		}
+		
+		public void init()
+		{
+			changeCam(camRearGearPlacer);
+		}
+		
+		public void run()
+		{
+			if(m_cameraSelection.isRearCameraSelected()) //contr.getButton(Config.CameraFeeds.btCamCenter))
+				changeCam(camRearGearPlacer);
+			
+			if(m_cameraSelection.isFrontCameraSelected()) //contr.getButton(Config.CameraFeeds.btCamRight))
+				changeCam(camFrontShooter);
+			
+			updateCam();
+		}
+		
+		/**
+		 * Stop aka close camera stream
+		 */
+		public void end()
+		{
+			NIVision.IMAQdxStopAcquisition(curCam);
+		}
+		
+		/**
+		 * Change the camera to get imgs from to a different one
+		 * @param newId for camera
+		 */
+		public void changeCam(int newId)
+	    {
+			NIVision.IMAQdxStopAcquisition(curCam);
+	    	NIVision.IMAQdxConfigureGrab(newId);
+	    	NIVision.IMAQdxStartAcquisition(newId);
+	    	curCam = newId;
+	    }
+	    
+		/**
+		 * Get the img from current camera and give it to the server
+		 */
+	    public void updateCam()
+	    {
+	    	NIVision.IMAQdxGrab(curCam, frame, 1);
+	        server.setImage(frame);
+	    }
+//	}
+
+		@Override
+		public void doInstantiate() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void doRoboInit() {
+			init();
+		}
+
+		@Override
+		public void doDisabledInit() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void doAutonomousInit() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void doTeleopInit() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void doLwTestInit() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void doRobotPeriodic() {
+			run();
+		}
+
+		@Override
+		public void doDisabledPeriodic() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void doAutonomousPeriodic() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void doTeleopPeriodic() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void doLwTestPeriodic() {
+			// TODO Auto-generated method stub
+			
+		}
+
+}
+
